@@ -29,10 +29,17 @@ jobs:
     - name: Dotnet Publish
       run: dotnet publish --configuration Release -o ${{ github.workspace }}/demo 
 
-    - name: Upload Artifact
+    - name: Upload App
       uses: actions/upload-artifact@v1
       with:
         name: app
         path: ${{ github.workspace }}//demo
+
+    - name: Upload Terraform
+      uses: actions/upload-artifact@v1
+      with:
+        name: terraform
+        path: ${{ github.workspace }}/appservice
+
 
 
