@@ -46,9 +46,58 @@ jobs:
     name: Deploy Dev
     runs-on: ubuntu-latest
 
+    env:
+       working-directory: ${{ github.workspace }}/appservice
+       app-working-directory: ${{ github.workspace }}/app
+       ARM_CLIENT_ID: ${{ secrets.TF_ARM_CLIENT_ID }}
+       ARM_CLIENT_SECRET: ${{ secrets.TF_ARM_CLIENT_SECRET }}
+       ARM_SUBSCRIPTION_ID: ${{ secrets.TF_ARM_SUBSCRIPTION_ID }}
+       ARM_TENANT_ID: ${{ secrets.TF_ARM_TENNANT_ID }}       
+
     environment:
       name: dev
 
     needs: build
     steps:
-      - run: echo "Hello World"    
+      - name: Download Terraform
+        id: pkgterraform
+        uses: actions/download-artifact@v2
+        with:
+          name: terraform
+          path: ${{ env.working-directory }}
+
+      - name: Download App
+        id: pkgApp
+        uses: actions/download-artifact@v2
+        with:
+          name: app
+          path: ${{ env.app-working-directory }}
+
+      - name: Alteração Backend
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "__tfstate__"
+          replace: "desenvolvimento"
+          regex: false
+
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false 
+
+      - name: Terraform init
+        run: terraform init
+        working-directory: ${{ env.working-directory }}
+
+      - name: Terraform plan
+        run: terraform plan -out tfplan.binary
+        working-directory: ${{ env.working-directory }}
+
+      - name: Terraform show
+        run: terraform show -json tfplan.binary > plan.json
+        working-directory: ${{ env.working-directory }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ${{ env.working-directory }}      
+
