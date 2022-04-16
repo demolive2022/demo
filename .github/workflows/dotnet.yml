@@ -42,4 +42,13 @@ jobs:
         path: ${{ github.workspace }}/appservice
 
 
+  deploy-dev:
+    name: Deploy Dev
+    runs-on: ubuntu-latest
 
+    environment:
+      name: dev
+
+    needs: build
+    steps:
+      - run: echo "Hello World"    
